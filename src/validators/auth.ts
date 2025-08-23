@@ -1,6 +1,6 @@
-const { body } = require('express-validator');
+import { body } from 'express-validator';
 
-const validateRegister = [
+export const validateRegister = [
   body('name')
     .trim()
     .isLength({ min: 2, max: 50 })
@@ -18,7 +18,7 @@ const validateRegister = [
     .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number')
 ];
 
-const validateLogin = [
+export const validateLogin = [
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -28,8 +28,3 @@ const validateLogin = [
     .notEmpty()
     .withMessage('Password is required')
 ];
-
-module.exports = {
-  validateRegister,
-  validateLogin
-};
