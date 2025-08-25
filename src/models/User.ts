@@ -4,11 +4,25 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { IUser } from '../types';
 
 const UserSchema = new Schema<IUser>({
-  name: {
+  firstName: {
     type: String,
-    required: [true, 'Please add a name'],
+    required: [true, 'Please add a first name'],
     trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters']
+    maxlength: [30, 'First name cannot be more than 30 characters']
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    maxlength: [30, 'Last name cannot be more than 30 characters']
+  },
+  zipcode: {
+    type: String,
+    trim: true,
+    match: [/^\d{5}(-\d{4})?$/, 'Please enter a valid zipcode']
+  },
+  avatar: {
+    type: String,
+    trim: true
   },
   email: {
     type: String,
@@ -102,8 +116,11 @@ UserSchema.methods.matchPassword = async function(this: IUser, enteredPassword: 
 UserSchema.methods.getPublicProfile = function(this: IUser) {
   return {
     id: this._id,
-    name: this.name,
+    firstName: this.firstName,
+    lastName: this.lastName,
     email: this.email,
+    zipcode: this.zipcode,
+    avatar: this.avatar,
     role: this.role,
     subscription: this.subscription,
     preferences: this.preferences,

@@ -1,10 +1,16 @@
 import { body } from 'express-validator';
 
 export const validateRegister = [
-  body('name')
+  body('firstName')
     .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Name must be between 2 and 50 characters'),
+    .isLength({ min: 2, max: 30 })
+    .withMessage('First name must be between 2 and 30 characters'),
+  
+  body('lastName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 30 })
+    .withMessage('Last name must be between 2 and 30 characters if provided'),
   
   body('email')
     .isEmail()

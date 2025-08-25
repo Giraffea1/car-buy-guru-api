@@ -5,8 +5,11 @@ import { JwtPayload } from 'jsonwebtoken';
 // Base Types
 export interface IUser extends Document {
   _id: Types.ObjectId;
-  name: string;
+  firstName: string;
+  lastName?: string;
   email: string;
+  zipcode?: string;
+  avatar?: string;
   password: string;
   role: 'user' | 'admin';
   subscription: 'free' | 'premium';
@@ -143,7 +146,8 @@ export interface ILoginRequest {
 }
 
 export interface IRegisterRequest {
-  name: string;
+  firstName: string;
+  lastName?: string;
   email: string;
   password: string;
 }

@@ -19,21 +19,22 @@ const register = async (req: Request, res: Response, next: NextFunction): Promis
       return;
     }
 
-    const { name, email, password }: IRegisterRequest = req.body;
+    const { firstName, lastName, email, password }: IRegisterRequest = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      res.status(400).json({
-        success: false,
-        error: 'User already exists with this email'
-      } as ApiResponse);
+          res.status(400).json({
+      success: false,
+      message: 'User already exists with this email'
+    } as ApiResponse);
       return;
     }
 
     // Create user
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password
     });
@@ -77,7 +78,7 @@ const login = async (req: Request, res: Response, next: NextFunction): Promise<v
     if (!user) {
       res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        message: 'Invalid credentials'
       } as ApiResponse);
       return;
     }
@@ -88,7 +89,7 @@ const login = async (req: Request, res: Response, next: NextFunction): Promise<v
     if (!isMatch) {
       res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        message: 'Invalid credentials'
       } as ApiResponse);
       return;
     }
@@ -156,12 +157,48 @@ const getMe = async (req: IAuthRequest, res: Response, next: NextFunction): Prom
 // @access  Private
 const updateProfile = async (req: IAuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const fieldsToUpdate: Partial<{ name: string; email: string; preferences: any }> = {};
+    const fieldsToUpdate: Partial<{ 
+      firstName: string; 
+      lastName: string; 
+      email: string; 
+      zipcode: string; 
+      avatar: string; 
+      password: string;
+      preferences: any 
+    }> = {};
     
     // Only update provided fields
-    if (req.body.name) fieldsToUpdate.name = req.body.name;
+    if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
+    if (req.body.lastName !== undefined) fieldsToUpdate.lastName = req.body.lastName;
     if (req.body.email) fieldsToUpdate.email = req.body.email;
+    if (req.body.zipcode !== undefined) fieldsToUpdate.zipcode = req.body.zipcode;
+    if (req.body.avatar) fieldsToUpdate.avatar = req.body.avatar;
     if (req.body.preferences) fieldsToUpdate.preferences = req.body.preferences;
+
+    // Handle password update separately if provided
+    if (req.body.currentPassword && req.body.newPassword) {
+      const userWithPassword = await User.findById(req.user?.userId).select('+password');
+      if (!userWithPassword) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        } as ApiResponse);
+        return;
+      }
+
+      // Verify current password
+      const isValidPassword = await userWithPassword.matchPassword(req.body.currentPassword);
+      if (!isValidPassword) {
+        res.status(400).json({
+          success: false,
+          message: 'Current password is incorrect'
+        } as ApiResponse);
+        return;
+      }
+
+      // Add new password to update fields
+      fieldsToUpdate.password = req.body.newPassword;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user?.userId,
@@ -175,13 +212,14 @@ const updateProfile = async (req: IAuthRequest, res: Response, next: NextFunctio
     if (!user) {
       res.status(404).json({
         success: false,
-        error: 'User not found'
+        message: 'User not found'
       } as ApiResponse);
       return;
     }
 
     res.status(200).json({
       success: true,
+      message: 'Profile updated successfully',
       data: user.getPublicProfile()
     } as ApiResponse);
 
